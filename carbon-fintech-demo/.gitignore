@@ -1,0 +1,23 @@
+# Python 自動產生的暫存檔與快取目錄
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 虛擬環境資料夾 (不需要 commit 進版本控制)
+venv/
+env/
+ENV/
+
+# 資料庫檔案 (避免把測試產生的資料檔或個資 commit 上去)
+database.db
+*.sqlite3
+*.db
+
+# 部署或測試時產生的上傳檔案夾
+uploads/
+
+# 系統與 IDE 自動產生的設定檔
+.DS_Store
+.vscode/
+.idea/
+*.log

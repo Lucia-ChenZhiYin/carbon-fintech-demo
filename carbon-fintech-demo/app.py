@@ -1,79 +1,144 @@
-import streamlit as st
-import time
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory
+import sqlite3
+import hashlib
+import os
 
-# 頁面標題與配置
-st.set_page_config(page_title="碳個究竟 - 交易級永續評估平台", layout="wide", page_icon="🌱")
+app = Flask(__name__)
 
-st.title("🌱 碳個究竟：交易級永續評估與綠色金融對接平台")
-st.caption("交易級永續評估補充層 (Transaction-level Sustainability Assessment Layer)")
+# 設定檔案上傳資料夾
+UPLOAD_FOLDER = 'uploads'
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# 側邊欄設計
-st.sidebar.image("https://img.icons8.com/color/96/leaf--v1.png", width=60)
-st.sidebar.title("系統功能選單")
-menu = st.sidebar.radio("請選擇操作項目", ["1. 單據進件與 AI 比對", "2. TSS 永續評估儀表板", "3. 金融機構授信審核"])
+# 1. 初始化 SQLite 資料庫
+def init_db():
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS transactions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tx_id TEXT,
+            company_name TEXT,
+            invoice_num TEXT,
+            amount REAL,
+            file_name TEXT,
+            file_hash TEXT,
+            tss_score REAL,
+            w1_env REAL,
+            w2_cred REAL,
+            w3_imp REAL,
+            rate_discount TEXT,
+            status TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
 
-# Session State 初始化
-if 'uploaded' not in st.session_state:
-    st.session_state.uploaded = False
+init_db()
 
-# ----------------- 頁面 1：單據進件 -----------------
-if menu == "1. 單據進件與 AI 比對":
-    st.header("📄 單筆交易資料進件 (Mock Ingestion)")
-    st.markdown("請上傳該筆交易之相關憑證，系統將自動進行 **三單勾稽** 與 **發票 Hash 防重檢查**。")
+# 2. 動態 TSS 算力引擎邏輯 (根據金額與邏輯計算分數)
+def calculate_tss(amount):
+    # 根據金額大小微調分數（示範動態計算）
+    base_env = 45.0
+    base_cred = 28.0
+    base_imp = 15.0
     
-    uploaded_file = st.file_uploader("拖曳或瀏覽上傳電子發票 / 採購單 (PO) / 綠電憑證 (TREC)", type=["pdf", "png", "jpg"])
-    
-    if uploaded_file is not None:
-        st.success(f"已接收檔案：`{uploaded_file.name}`")
-        if st.button("🚀 開始 AI 欄位解析與三單比對", type="primary"):
-            with st.spinner("AI 解析中... 正在對接財政部 API 與進行 Hash 防重核驗..."):
-                time.sleep(1.5)
-            
-            st.session_state.uploaded = True
-            st.balloons() # 成功特效
-            st.success("✅ 解析完成！單據勾稽一致，發票 Hash 查驗無重複融資風險。")
-            
-            # 展示勾稽結果卡片
-            col1, col2 = st.columns(2)
-            with col1:
-                st.info("**基本交易欄位**\n- **交易編號**: TX-2026-08891\n- **買方**: 台積電供應鏈夥伴 A\n- **賣方**: 綠能零件股份有限公司\n- **金額**: NT$ 5,000,000")
-            with col2:
-                st.warning("**防偽與驗證機制**\n- **三單比對**: 完全吻合 (發票/PO/交貨單)\n- **防重融資**: 通過 (Hash 檢驗鎖定)\n- **第三方複審**: 待複審 (Pending)")
+    # 金額超過 500 萬加強永續權重
+    if amount >= 5000000:
+        base_imp = 15.0
+    else:
+        base_imp = 12.0
+        
+    total_score = base_env + base_cred + base_imp
+    rate_discount = "-0.35%" if total_score >= 80 else "-0.15%"
+    return round(total_score, 1), base_env, base_cred, base_imp, rate_discount
 
-# ----------------- 頁面 2：TSS 儀表板 -----------------
-elif menu == "2. TSS 永續評估儀表板":
-    st.header("📊 交易級永續綜合得分 (TSS Dashboard)")
-    
-    if not st.session_state.uploaded:
-        st.info("💡 提示：目前顯示為預設示範資料，可至「單據進件」頁面上傳測試單據。")
-    
-    # 核心指標展示
-    col1, col2, col3 = st.columns(3)
-    col1.metric("TSS 綜合評分", "88.1 / 100", "Level A (優良)", delta_color="normal")
-    col2.metric("建議利率減碼", "-0.35%", "已達綠色優惠門檻", delta_color="normal")
-    col3.metric("第三方驗證狀態", "待複審", "剛性必要流程", delta_color="off")
-    
-    st.divider()
-    
-    # 指標拆解
-    st.subheader("三維度指標算式拆解")
-    st.write("1. **環境表現指標 (E-Score, 權重 50%)**: **45.0** / 50 (引用環境部碳足跡資料庫)")
-    st.progress(90)
-    
-    st.write("2. **資料可信度指標 (C-Score, 權重 30%)**: **28.1** / 30 (已包含三單勾稽 +15% 加算)")
-    st.progress(93)
-    
-    st.write("3. **永續改善動能 (I-Score, 權重 20%)**: **15.0** / 20 (較前期同類交易減碳 12%)")
-    st.progress(75)
+# 3. 頁面路由設定
+@app.route('/')
+def index():
+    return render_template('index.html')
 
-# ----------------- 頁面 3：金融機構授信 -----------------
-elif menu == "3. 金融機構授信審核":
-    st.header("🏦 金融機構 API 授信對接區")
-    st.markdown("本介面模擬銀行風控後台讀取 TSS 評估結果並核定優惠條件。")
+@app.route('/dashboard')
+def dashboard():
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM transactions ORDER BY id DESC LIMIT 1")
+    latest_tx = cursor.fetchone()
+    conn.close()
+
+    if not latest_tx:
+        tx_data = {
+            "tx_id": "TX-20261009-8829",
+            "company_name": "台灣中鋼構股份有限公司",
+            "invoice_num": "XX-88291034",
+            "amount": "5,250,000",
+            "file_name": "範例單據.pdf",
+            "tss_score": 88.0,
+            "w1_env": 45.0,
+            "w2_cred": 28.0,
+            "w3_imp": 15.0,
+            "rate_discount": "-0.35%",
+            "file_hash": "8f3a9921b7c0d91c"
+        }
+    else:
+        tx_data = {
+            "tx_id": latest_tx[1],
+            "company_name": latest_tx[2],
+            "invoice_num": latest_tx[3],
+            "amount": f"{latest_tx[4]:,.0f}",
+            "file_name": latest_tx[5],
+            "file_hash": latest_tx[6][:16],
+            "tss_score": latest_tx[7],
+            "w1_env": latest_tx[8],
+            "w2_cred": latest_tx[9],
+            "w3_imp": latest_tx[10],
+            "rate_discount": latest_tx[11]
+        }
+        
+    return render_template('dashboard.html', tx=tx_data)
+
+# 4. API：處理真實上傳與動態數據修改
+@app.route('/process_upload', methods=['POST'])
+def process_upload():
+    # 接收前端表單填寫的真實數據
+    company = request.form.get('company_name', '台灣中鋼構股份有限公司')
+    invoice_num = request.form.get('invoice_num', 'XX-88291034')
+    try:
+        amount = float(request.form.get('amount', 5250000))
+    except ValueError:
+        amount = 5250000.0
+
+    # 處理上傳檔案
+    uploaded_file = request.files.get('document_file')
+    if uploaded_file and uploaded_file.filename != '':
+        filename = uploaded_file.filename
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        uploaded_file.save(filepath)
+        
+        # 讀取真實檔案內容並計算真 SHA-256 Hash
+        with open(filepath, 'rb') as f:
+            file_bytes = f.read()
+            file_hash = hashlib.sha256(file_bytes).hexdigest()
+    else:
+        filename = "系統模擬單據.pdf"
+        file_hash = hashlib.sha256(f"{invoice_num}_{amount}".encode('utf-8')).hexdigest()
+
+    # 計算 TSS 分數與折扣
+    total_score, w1, w2, w3, discount = calculate_tss(amount)
+    tx_id = f"TX-20261009-{os.urandom(2).hex().upper()}"
     
-    st.warning("⚠️ 實際核貸條件仍須依各金融機構之授信規範與作業程序決定。")
-    
-    if st.button("點擊模擬：透過 API 傳送授信結果至合作銀行"):
-        with st.spinner("加密傳輸中..."):
-            time.sleep(1)
-        st.success("🎉 數據已順利寫入銀行授信系統！自動套用 **-0.35% (35 bps)** 綠色利率優惠！")
+    # 寫入 SQLite
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO transactions 
+        (tx_id, company_name, invoice_num, amount, file_name, file_hash, tss_score, w1_env, w2_cred, w3_imp, rate_discount, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (tx_id, company, invoice_num, amount, filename, file_hash, total_score, w1, w2, w3, discount, 'Pending'))
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('dashboard'))
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)
