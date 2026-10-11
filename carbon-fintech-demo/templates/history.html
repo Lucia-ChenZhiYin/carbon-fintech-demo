@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>歷史交易稽核 - 碳個究竟</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+
+    <nav class="border-b border-slate-800 bg-slate-950/80 backdrop-blur fixed w-full z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-emerald-500 text-slate-950 p-2 rounded-lg font-bold">
+                    <i class="fa-solid fa-leaf text-xl"></i>
+                </div>
+                <span class="text-xl font-bold text-white">碳個究竟 <span class="text-emerald-400 text-sm font-normal">Carbon Secret</span></span>
+            </div>
+            <div class="flex space-x-6 text-sm font-medium">
+                <a href="/" class="text-slate-400 hover:text-slate-200">單據上傳評估</a>
+                <a href="/dashboard" class="text-slate-400 hover:text-slate-200">最新評估報告</a>
+                <a href="/history" class="text-emerald-400 border-b-2 border-emerald-400 pb-1">歷史交易稽核</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-28 pb-16 px-6 max-w-7xl mx-auto">
+        <div class="mb-8 flex justify-between items-end">
+            <div>
+                <h1 class="text-2xl font-bold text-white">歷史交易與防偽驗證紀錄</h1>
+                <p class="text-slate-400 text-sm mt-1">累積評估筆數：<span class="text-emerald-400 font-bold">{{ total_count }}</span> 筆 | 總融資金額：<span class="text-emerald-400 font-bold">NT$ {{ total_amount }}</span></p>
+            </div>
+        </div>
+
+        <!-- 歷史數據表格 -->
+        <div class="bg-slate-800/80 border border-slate-700 rounded-2xl overflow-hidden shadow-xl">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-slate-300">
+                    <thead class="bg-slate-900/80 text-xs text-slate-400 uppercase tracking-wider border-b border-slate-700">
+                        <tr>
+                            <th class="px-6 py-4">交易編號 (TX_ID)</th>
+                            <th class="px-6 py-4">企業名稱</th>
+                            <th class="px-6 py-4">發票號碼</th>
+                            <th class="px-6 py-4">交易金額</th>
+                            <th class="px-6 py-4">TSS 得分</th>
+                            <th class="px-6 py-4">利率優惠</th>
+                            <th class="px-6 py-4">狀態</th>
+                            <th class="px-6 py-4">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700/50">
+                        {% for tx in transactions %}
+                        <tr class="hover:bg-slate-700/30 transition">
+                            <td class="px-6 py-4 font-mono text-emerald-400 font-medium">{{ tx.tx_id }}</td>
+                            <td class="px-6 py-4 font-bold text-white">{{ tx.company_name }}</td>
+                            <td class="px-6 py-4">{{ tx.invoice_num }}</td>
+                            <td class="px-6 py-4">NT$ {{ "{:,.0f}".format(tx.amount) }}</td>
+                            <td class="px-6 py-4 font-bold text-emerald-400">{{ tx.tss_score }}</td>
+                            <td class="px-6 py-4">{{ tx.rate_discount }}</td>
+                            <td class="px-6 py-4">
+                                <span class="px-2 py-1 rounded text-xs font-semibold 
+                                    {% if tx.status == 'Approved' %} bg-emerald-500/20 text-emerald-400 border border-emerald-500/30
+                                    {% elif tx.status == 'Rejected' %} bg-rose-500/20 text-rose-400 border border-rose-500/30
+                                    {% else %} bg-amber-500/20 text-amber-400 border border-amber-500/30 {% endif %}">
+                                    {{ tx.status }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <a href="/dashboard/{{ tx.tx_id }}" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded transition">
+                                    查看詳情
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
