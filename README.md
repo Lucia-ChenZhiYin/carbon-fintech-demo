@@ -1,72 +1,73 @@
-# carbon-fintech-demo
-# 碳個究竟 (Carbon Secret) - 交易級永續評估與金融對接平台
-
-> **2026 金融科技創新競賽 / 學術專題成果**  
-> 本專案為兼具前端互動與後端真實算力邏輯的交易級永續評估（Transaction-level Sustainability Assessment, TSS）系統原型（Prototype）。系統透過 Python Flask 與 SQLite 搭建，實現單據上傳、SHA-256 哈希值防偽驗證、動態 TSS 評分演算與綠色金融授信報告產出。
+# 碳個究竟 (Carbon Secret) — 交易級永續評估與綠色融資平台
+> **2026 FinTech 金融服務校際創意競賽作品**  
+> *把永續行動轉化為金融價值：從企業整體（Entity-level）延伸至單筆交易（Transaction-level）的動態 ESG 評估與防偽數據中樞。*
 
 ---
 
-## 🛠 技術架構與技術棧 (Tech Stack)
+## 📌 專案簡介 (Project Overview)
 
-- **後端 (Backend)**: Python 3.x, Flask
-- **資料庫 (Database)**: SQLite 3
-- **前端 (Frontend)**: HTML5, Jinja2 Template, Tailwind CSS (CDN), FontAwesome Icons
-- **安全與加密 (Security)**: SHA-256 Hash 演算法 (防重複融資驗證)
+現行 ESG 評估大多以「企業整體」及「年度報告」為單位，難以辨識單筆訂單的實質減碳努力，且中小企業（SME）常因缺乏全廠碳盤查資源而面臨融資困境。「碳個究竟」作為連接中小企業與金融機構之間的 **綠色數據中樞 (Green Data Hub)**，提供單筆交易層級（Transaction-level）的永續評估與防偽驗證服務。
 
----
-
-## 🚀 系統核心功能與機制
-
-1. **單據進件與資料解析**
-   - 支援 PDF / 影像單據檔案上傳，後端自動將檔案儲存於本地 `uploads/` 資料夾。
-   - 允許自由動態調整企業名稱、發票號碼與交易金額。
-
-2. **SHA-256 加密防偽機制**
-   - 讀取上傳檔案之二進位內容，實時計算獨一無二的 `SHA-256` 哈希值（Hash），作為跨行防重複融資與勾稽憑證。
-
-3. **TSS 動態算力引擎**
-   - **$W_1$ 環境表現 (50%)**：依據交易金額與低碳資材效益進行演算法加權。
-   - **$W_2$ 資料可信度 (30%)**：基於進件資料完整度與 Hash 防偽演算評分。
-   - **$W_3$ 永續改善幅度 (20%)**：對齊雙軌基準（歷史軌跡與產業標竿 Top 15%）。
-
-4. **綠色金融授信試算與報告產出**
-   - 動態計算建議利率減碼（如 -0.35% / 35 bps）與授信額度。
-   - 提供直覺的 TSS 儀表板，支援一鍵列印/匯出為標準 PDF 報告。
+系統整合 **AI/OCR 單據結構化解析**、**SHA-256 發票雜湊防重複融資演算**、**財政部 API 真偽查核**，並透過符合企劃書規範的 **TSS 算力引擎** 計算動態分數與綠色融資利率優惠減码（bps），協助中小企業憑藉真實發生的減碳行為建立長期「永續交易履歷」。
 
 ---
 
-## 📅 開發流程與目前進度 (Development Status)
+## 📸 系統核心 UI 與流程 (Features & Preview)
 
-### 階段一：需求分析與 UI 原型設計 (Completed)
-- [x] 確定系統三大模組：單據進件、TSS 算力引擎、金融機構儀表板。
-- [x] 完成靜態 HTML/Tailwind CSS 視覺設計（符合金管會綠色金融 3.0 與 UI/UX 規範）。
+### 1. 單筆交易資料上傳與 AI 解析驗證 (`/`) — 對齊企劃書 圖 2-1
+* **多源單據拖曳上傳**：支援電子發票 (Invoice)、採購單 (PO)、進貨單 (GR) 及綠電憑證（PDF, PNG, JPG, TXT）。
+* **AI 三單結構化交叉勾稽**：自動比對「交易品名」、「數量/單位」、「交易總金額」、「供應商統編」並即時呈現勾稽吻合度。
+* **金融級數據防偽**：即時進行財政部 API 開立狀態查核與發票 SHA-256 Hash 獨特性驗證。
+* **歷史紀錄彈窗 (Modal)**：提供動態 API 載入歷次進件紀錄與審核狀態。
 
-### 階段二：Flask 後端與 SQLite 基礎架構 (Completed)
-- [x] 建立 Flask 伺服器與路由系統（`/` 與 `/dashboard`）。
-- [x] 初始化 SQLite 資料庫（`transactions` 資料表結構設計）。
-- [x] 將靜態 HTML 重構為 Jinja2 動態樣板。
-
-### 階段三：真實資料流與動態互動接通 (Completed - Current State)
-- [x] **實作真實檔案上傳**：實現 `multipart/form-data` 傳輸，檔案實體儲存於 `uploads/`。
-- [x] **SHA-256 防偽演算**：對上傳檔案計算真實 Hash 值並展示於儀表板。
-- [x] **TSS 動態計算引擎**：接通前端表單數據，實現即時分數演算與利率折扣計算。
-- [x] **資料庫持久化儲存**：完成表單送出後自動寫入 `database.db` 的完整 POST 流程。
-- [x] **互動體驗優化**：完成「評估下一筆」、「匯出 PDF 報告」與「第三方複審」等按鈕之觸發邏輯。
-
-### 階段四：未來擴充與正式部署規劃 (Roadmap)
-- [ ] 串接 LLM / OCR API 實現發票與 PO 單據之自動文字辨識（AI 自動填表）。
-- [ ] 擴充多筆交易之歷史趨勢統計與圖表分析（Chart.js）。
-- [ ] 部署至雲端平台（如 Render / Heroku）以供線上實測。
+### 2. 交易級永續綜合評估報告 (TSS Report) (`/dashboard`) — 對齊企劃書 圖 2-2
+* **TSS 綜合分數儀表**：呈現 0 - 100 分動態評估結果與等級評定 (Level A / Level B / Level C)。
+* **三大維度算力拆解**：視覺化呈現 $W_1$ 交易環境表現、$W_2$ 資料可信度、$W_3$ 永續改善幅度。
+* **綠色金融授信建議**：自動試算建議利率減碼 (bps)、建議授信額度與審查通道（提供快速審查/加強審查提示）。
+* **第三方複審對接**：提供去識別化加密數據授權送出功能與 PDF 報告匯出功能。
 
 ---
 
-## 💻 本地端快速啟動指南 (Quick Start)
+## 🧮 TSS 算力引擎邏輯 (TSS Calculation Engine)
 
-### 1. 複製專案與建立虛擬環境
-```bash
-git clone <your-repository-url>
-cd carbon-fintech-demo
+評估機制嚴格遵守企劃書 **「貳、三：綠色交易評估機制」** 數學模型：
 
-# 建立虛擬環境 (以 Windows 為例)
-python -m venv venv
-venv\Scripts\activate
+$$TSS = (W_1 \times 50\%) + (W_2 \times 30\%) + (W_3 \times 20\%)$$
+
+* **維度一：交易環境表現 ($W_1: 50\%$)**  
+  $\text{基準 60 分} + \text{低碳/再生鋼材加分} + \text{綠電/節能憑證加分} + \text{低碳物流與循環包裝加分}$ (上限 100 分)。
+* **維度二：資料可信度 ($W_2: 30\%$)**  
+  $\min(100, \max(0, 70 + \text{三單交叉勾稽加分} + \text{第三方憑證加分} - \text{異常扣分}))$。  
+  *⚠️ **極端風控機制**：若偵測到重複進件（Hash 碰撞或發票號碼重複），$W_2$ 直接降至 0 分，總分強制歸類為 Level C，取消所有利率優惠。*
+* **維度三：永續改善幅度 ($W_3: 20\%$)**  
+  依據減碳改善率 $R(\%)$ 計算：$\min(100, \max(0, 60 + 2 \times R))$。
+
+### 金融授信優惠對應 (企劃書 表 2-2)
+
+| TSS 綜合分數 | 永續等級評定 | 綠色融資優惠建議 | 授信額度與通道 |
+| :--- | :--- | :--- | :--- |
+| **85 分以上** | **Level A (優良)** | 利率減碼 **-0.35% (35 bps)** | 額度 85% / 快速審查通道 |
+| **70 ~ 84 分** | **Level B (符合)** | 利率減碼 **-0.15% (15 bps)** | 額度 85% / 標準審查通道 |
+| **69 分以下** | **Level C (未達標)** | **0.00% (不給予優惠)** | 額度 70% / 標準審查通道 |
+| **重複進件/異常** | **FLAGGED_DUPLICATE** | **0.00% (強制阻斷)** | 額度 70% / **人工加強審查** |
+
+---
+
+## 🛠️ 技術架構 (Tech Stack & Architecture)
+
+* **後端核心 (Backend)**: Python 3.10+ / Flask (MVC 模組化設計)
+* **資料庫 (Database)**: SQLite3 (`database.db`)
+* **文字解析與防偽 (Parsing & Audit)**: `pypdf`, `re` (Regex 正規表示式), SHA-256 Hash
+* **前端視覺 (Frontend)**: HTML5, Tailwind CSS (CDN), FontAwesome 6.4, Vanilla JavaScript (Fetch API)
+
+### 專案目錄結構 (Project Directory)
+
+```text
+carbon-secret/
+├── app.py                  # Flask 主程式：路由控制、SQLite 資料庫操作、TSS 算力引擎
+├── pdf_parser.py           # 通用文件解析模組：動態提取 PDF/TXT 之金額、發票號碼與企業名稱
+├── uploads/                # 使用者上傳單據存檔區
+├── database.db             # SQLite 資料庫 (自動生成)
+└── templates/
+    ├── index.html          # 圖 2-1 單筆交易資料進件與 AI 解析驗證介面
+    └── dashboard.html      # 圖 2-2 交易級永續綜合評估報告 (TSS Report) 儀表板
