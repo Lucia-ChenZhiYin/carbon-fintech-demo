@@ -1,82 +1,84 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>歷史交易稽核 - 碳個究竟</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>歷史上傳紀錄 - 碳個究竟</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background-color: #f8fafc; }
+  </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen">
+<body class="p-6 text-slate-800">
 
-    <nav class="border-b border-slate-800 bg-slate-950/80 backdrop-blur fixed w-full z-50">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <div class="bg-emerald-500 text-slate-950 p-2 rounded-lg font-bold">
-                    <i class="fa-solid fa-leaf text-xl"></i>
-                </div>
-                <span class="text-xl font-bold text-white">碳個究竟 <span class="text-emerald-400 text-sm font-normal">Carbon Secret</span></span>
-            </div>
-            <div class="flex space-x-6 text-sm font-medium">
-                <a href="/" class="text-slate-400 hover:text-slate-200">單據上傳評估</a>
-                <a href="/dashboard" class="text-slate-400 hover:text-slate-200">最新評估報告</a>
-                <a href="/history" class="text-emerald-400 border-b-2 border-emerald-400 pb-1">歷史交易稽核</a>
-            </div>
-        </div>
-    </nav>
+  <div class="max-w-6xl mx-auto space-y-6">
+    <!-- 頂部導覽列 -->
+    <div class="bg-white p-6 rounded-2現在的系統已經**不是**純靜態畫面，而是具備**「動態儲存與運算」**的 Working Prototype：
 
-    <main class="pt-28 pb-16 px-6 max-w-7xl mx-auto">
-        <div class="mb-8 flex justify-between items-end">
-            <div>
-                <h1 class="text-2xl font-bold text-white">歷史交易與防偽驗證紀錄</h1>
-                <p class="text-slate-400 text-sm mt-1">累積評估筆數：<span class="text-emerald-400 font-bold">{{ total_count }}</span> 筆 | 總融資金額：<span class="text-emerald-400 font-bold">NT$ {{ total_amount }}</span></p>
-            </div>
-        </div>
+1. **已具備的實質功能**：
+   * 當你在 `index.html` 填寫不同公司、發票號碼與金額並上傳檔案時，`app.py` 會**實時**寫入 SQLite 資料庫 (`database.db`)。
+   * 系統會根據你輸入的金額動態觸發 `calculate_tss()` 演算法，即時算出 TSS 分數與利率折扣，並帶入 `dashboard.html` 呈現。
+   * 如果上傳實體檔案，後端會**真正讀取位元組**並算出正確的 SHA-256 Hash 值。
 
-        <!-- 歷史數據表格 -->
-        <div class="bg-slate-800/80 border border-slate-700 rounded-2xl overflow-hidden shadow-xl">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-slate-300">
-                    <thead class="bg-slate-900/80 text-xs text-slate-400 uppercase tracking-wider border-b border-slate-700">
-                        <tr>
-                            <th class="px-6 py-4">交易編號 (TX_ID)</th>
-                            <th class="px-6 py-4">企業名稱</th>
-                            <th class="px-6 py-4">發票號碼</th>
-                            <th class="px-6 py-4">交易金額</th>
-                            <th class="px-6 py-4">TSS 得分</th>
-                            <th class="px-6 py-4">利率優惠</th>
-                            <th class="px-6 py-4">狀態</th>
-                            <th class="px-6 py-4">操作</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-700/50">
-                        {% for tx in transactions %}
-                        <tr class="hover:bg-slate-700/30 transition">
-                            <td class="px-6 py-4 font-mono text-emerald-400 font-medium">{{ tx.tx_id }}</td>
-                            <td class="px-6 py-4 font-bold text-white">{{ tx.company_name }}</td>
-                            <td class="px-6 py-4">{{ tx.invoice_num }}</td>
-                            <td class="px-6 py-4">NT$ {{ "{:,.0f}".format(tx.amount) }}</td>
-                            <td class="px-6 py-4 font-bold text-emerald-400">{{ tx.tss_score }}</td>
-                            <td class="px-6 py-4">{{ tx.rate_discount }}</td>
-                            <td class="px-6 py-4">
-                                <span class="px-2 py-1 rounded text-xs font-semibold 
-                                    {% if tx.status == 'Approved' %} bg-emerald-500/20 text-emerald-400 border border-emerald-500/30
-                                    {% elif tx.status == 'Rejected' %} bg-rose-500/20 text-rose-400 border border-rose-500/30
-                                    {% else %} bg-amber-500/20 text-amber-400 border border-amber-500/30 {% endif %}">
-                                    {{ tx.status }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4">
-                                <a href="/dashboard/{{ tx.tx_id }}" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded transition">
-                                    查看詳情
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </main>
-</body>
-</html>
+2. **為什麼看起來像只有一頁功能？**
+   * 因為目前畫面頂部的「歷史上傳紀錄」按鈕尚未綁定後端路由，且系統內缺乏**預先載入的歷史模擬數據**，導致除了最後一次提交的數據外，無法展示「企業長期減碳軌跡」或「歷史勾稽清單」。
+
+---
+
+### 💡 你需要製作模擬資料嗎？
+
+**是的，強烈建議製作！** 在金融科技競賽或報告展示中，一個剛初始化的空白資料庫會讓 Demo 看起來很單薄。預先注入 **3 ~ 5 筆合理的歷史交易資料**，能達到以下效果：
+
+1. **直接點擊「歷史上傳紀錄」即可展示清單**：不需每次報告都重新手動輸入好幾次。
+2. **展現動態演算法差異**：準備不同金額（例如 200 萬 vs 800 萬）與不同企業的單據，展示 TSS 分數與優惠利率（-0.15% vs -0.35%）的動態變化。
+3. **展示跨行防重複融資驗證**：預先注入一筆特定 Hash，展示再次上傳相同單據時的驗證邏輯。
+
+---
+
+### 🚀 助教幫你直接封裝「自動模擬資料注入」
+
+不需要手動去打 SQL 或建 CSV。我們只需在 `app.py` 的 `init_db()` 中加入**自動種子資料（Seed Data）機制**：只要資料庫是空的，啟動時就會自動幫你寫入 3 筆逼真的鋼鐵與營造業綠色採購歷史單據！
+
+請將 `app.py` 中的 `init_db()` 替換為以下程式碼：
+
+```python
+# 1. 初始化 SQLite 資料庫（含 Demo 預設模擬數據）
+def init_db():
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS transactions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tx_id TEXT,
+            company_name TEXT,
+            invoice_num TEXT,
+            amount REAL,
+            file_name TEXT,
+            file_hash TEXT,
+            tss_score REAL,
+            w1_env REAL,
+            w2_cred REAL,
+            w3_imp REAL,
+            rate_discount TEXT,
+            status TEXT
+        )
+    ''')
+    
+    # 檢查是否已有歷史數據，若無則自動注入 3 筆示範模擬資料
+    cursor.execute("SELECT COUNT(*) FROM transactions")
+    if cursor.fetchone()[0] == 0:
+        demo_data = [
+            ("TX-20261008-A101", "台灣中鋼構股份有限公司", "XX-88291034", 5250000.0, "再生鋼材採購單據.pdf", "8f3a9921b7c0d91c2e4f5a6b7c8d9e0f", 88.0, 45.0, 28.0, 15.0, "-0.35%", "Verified"),
+            ("TX-20261005-B204", "台塑低碳水泥事業部", "YY-77120988", 1800000.0, "綠色水泥出貨單.pdf", "4a2b8c9d0e1f2a3b4c5d6e7f8a9b0c1d", 75.0, 45.0, 28.0, 12.0, "-0.15%", "Verified"),
+            ("TX-20260928-C309", "東和鋼鐵企業股份有限公司", "ZZ-66543210", 8200000.0, "廢鋼回收再利用發票.pdf", "1f2e3d4c5b6a79887766554433221100", 88.0, 45.0, 28.0, 15.0, "-0.35%", "Verified")
+        ]
+        cursor.executemany('''
+            INSERT INTO transactions 
+            (tx_id, company_name, invoice_num, amount, file_name, file_hash, tss_score, w1_env, w2_cred, w3_imp, rate_discount, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', demo_data)
+        print("已成功自動注入 3 筆 Demo 歷史模擬數據！")
+
+    conn.commit()
+    conn.close()

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>單筆交易資料進件介面 - 碳個究竟</title>
+  <title>單筆交易資料上傳與 AI 解析驗證 - 碳個究竟</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome 圖示 -->
@@ -15,7 +15,8 @@
 <body class="p-6 text-slate-800">
 
   <div class="max-w-6xl mx-auto space-y-6">
-    <!-- 頂部導覽列與標題 -->
+    
+    <!-- 頂部導覽列與標題 (完全對齊圖 2-1) -->
     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center">
       <div>
         <div class="flex items-center gap-2">
@@ -25,105 +26,274 @@
         <h1 class="text-2xl font-bold text-slate-900 mt-1">單筆交易資料上傳與 AI 解析驗證</h1>
       </div>
       <div class="flex items-center gap-3">
-        <span class="text-xs bg-slate-100 text-slate-600 px-3 py-1.5 rounded-full font-medium">企業帳號：台灣中鋼構股份公司</span>
-        <button class="text-sm bg-slate-900 text-white px-4 py-2 rounded-xl hover:bg-slate-800 transition">歷史上傳紀錄</button>
+        <span class="text-xs bg-slate-100 text-slate-600 px-3 py-1.5 rounded-full font-medium">企業帳號：台灣中鋼構股份有限公司</span>
+        <button type="button" onclick="openHistoryModal()" class="text-sm bg-slate-900 text-white px-4 py-2 rounded-xl hover:bg-slate-800 transition shadow">歷史上傳紀錄</button>
       </div>
     </div>
 
-    <!-- 主要兩欄佈局 -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-      <form action="/process_upload" method="POST" enctype="multipart/form-data" class="lg:col-span-12 grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <!-- 左側：單據檔案上傳區塊 (保留原本的外框與標題) -->
-        <div class="lg:col-span-5 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
-          <div>
-            <!-- 標題保留 -->
-            <h2 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-              <i class="fa-solid fa-cloud-arrow-up text-emerald-600"></i> 單據檔案上傳
-            </h2>
+    <!-- 主要表單與兩欄佈局 -->
+    <form action="/process_upload" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- 左側：單據檔案上傳與多檔案解析清單 (5 欄) -->
+      <div class="lg:col-span-5 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between space-y-4">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-cloud-arrow-up text-emerald-600"></i> 單據檔案上傳
+          </h2>
 
-            <!-- 中間的拖曳上傳卡片區 -->
-            <div class="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center hover:border-emerald-500 transition cursor-pointer bg-slate-50/50">
-              <i class="fa-solid fa-file-invoice text-4xl text-slate-300 mb-3"></i>
-              <p class="text-sm font-semibold text-slate-700">拖曳發票或單據 PDF 至此</p>
-              <p class="text-xs text-slate-400 mt-1 mb-4">支援格式：PDF, PNG, JPG (上限 10MB)</p>
+          <!-- 拖曳上傳卡片 -->
+          <div class="border-2 border-dashed border-emerald-300 rounded-2xl p-6 text-center hover:border-emerald-500 transition cursor-pointer bg-emerald-50/20">
+            <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3">
+              <i class="fa-solid fa-file-arrow-up text-xl"></i>
+            </div>
+            <p class="text-xs font-bold text-slate-700">拖曳發票、採購單 (PO) 或進貨單 (GR) 至此</p>
+            <p class="text-[11px] text-slate-400 mt-1 mb-3">支援 PDF, PNG, JPG (系統將自動進行 OCR 與 Hash 演算)</p>
 
-              <!-- 👇 把那 3 行放在這裡！讓它變成一個好看的按鈕＋顯示檔名 👇 -->
-              <input type="file" name="document_file" id="fileInput" class="hidden" onchange="document.getElementById('fileNameDisplay').innerText = this.files[0] ? this.files[0].name : '未選擇檔案'">
-              
-              <label for="fileInput" class="cursor-pointer px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg shadow hover:bg-emerald-700 inline-block transition">
-                選擇檔案上傳
-              </label>
-              
-              <div class="mt-3">
-                <span id="fileNameDisplay" class="text-xs font-semibold text-emerald-600">尚未選擇檔案</span>
-              </div>
-              <!-- 👆 放置結束 👆 -->
+            <input type="file" name="document_file" id="fileInput" class="hidden" onchange="document.getElementById('fileNameDisplay').innerText = this.files[0] ? this.files[0].name : '已選擇檔案'">
+            
+            <label for="fileInput" class="cursor-pointer px-4 py-2 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-xl hover:bg-emerald-200 inline-block transition border border-emerald-200">
+              選擇電腦檔案
+            </label>
+            
+            <div class="mt-2">
+              <span id="fileNameDisplay" class="text-[11px] font-semibold text-emerald-600"></span>
             </div>
           </div>
 
-          <!-- 下方的小提示保留 -->
-          <div class="mt-4 p-3 bg-emerald-50 rounded-xl flex items-start gap-2">
-            <i class="fa-solid fa-shield-check text-emerald-600 text-sm mt-0.5"></i>
-            <p class="text-xs text-emerald-800">上傳後系統將自動計算 SHA-256 哈希值進行跨行防重複融資驗證。</p>
+          <!-- 多單據載入清單 (對齊圖 2-1 左側) -->
+          <div class="mt-4 space-y-2.5">
+            <p class="text-[11px] font-bold text-slate-400">已成功載入進件單據 (3/3)</p>
+            
+            <!-- 單據 1: 發票 -->
+            <div class="p-3 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <i class="fa-solid fa-file-pdf text-rose-500 text-lg"></i>
+                <div>
+                  <p class="text-xs font-bold text-slate-800">電子發票_INV-20261009.pdf</p>
+                  <p class="text-[10px] text-slate-400">2.4 MB • 發票字軌：XX-88291034</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-0.5 rounded">解析完成</span>
+            </div>
+
+            <!-- 單據 2: 採購單 -->
+            <div class="p-3 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <i class="fa-solid fa-file-pdf text-indigo-500 text-lg"></i>
+                <div>
+                  <p class="text-xs font-bold text-slate-800">採購單_PO-99201.pdf</p>
+                  <p class="text-[10px] text-slate-400">1.1 MB • 採購項目：低碳再生鋼筋</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-0.5 rounded">解析完成</span>
+            </div>
+
+            <!-- 單據 3: 綠電憑證 -->
+            <div class="p-3 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <i class="fa-solid fa-bolt text-amber-500 text-lg"></i>
+                <div>
+                  <p class="text-xs font-bold text-slate-800">綠電憑證_TREC-2026-0041.pdf</p>
+                  <p class="text-[10px] text-slate-400">850 KB • 抵換額度：15,000 kWh</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-0.5 rounded">解析完成</span>
+            </div>
           </div>
         </div>
 
-        <!-- 右側：資料確認與初審欄位 -->
-        <div class="lg:col-span-7 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
-          <div>
-            <h2 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-              <i class="fa-solid fa-list-check text-emerald-600"></i> 單據 AI 辨識與資料確認
+        <div class="pt-2 flex justify-between items-center text-[11px] text-slate-400">
+          <span>AI 多單據對齊率：<strong class="text-emerald-600">99.4%</strong></span>
+          <button type="reset" class="hover:text-slate-600">重新上傳單據</button>
+        </div>
+      </div>
+
+      <!-- 右側：AI 結構化欄位、三單交叉勾稽與真偽驗證 (7 欄) -->
+      <div class="lg:col-span-7 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between space-y-6">
+        
+        <div>
+          <!-- 標題與 LLM 標籤 -->
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-microchip text-indigo-600"></i> AI 結構化欄位與防偽驗證結果
             </h2>
+            <span class="text-[10px] bg-indigo-50 text-indigo-600 border border-indigo-100 font-bold px-2 py-0.5 rounded-full">
+              LLM+OCR 智算中
+            </span>
+          </div>
 
-            <div class="space-y-4">
-              
-              <!-- 1. 企業名稱輸入框 -->
-              <div>
-                <label class="block text-xs font-medium text-slate-500 mb-1">申請企業名稱</label>
-                <input 
-                  type="text" 
-                  name="company_name" 
-                  value="台灣中鋼構股份有限公司" 
-                  class="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500 focus:bg-white transition"
-                  required
-                >
+          <!-- 三單交叉勾稽表格 (對齊圖 2-1 右上) -->
+          <div class="overflow-x-auto mb-6">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-slate-50/70 border-b border-slate-100 text-slate-400">
+                  <th class="p-2.5 font-semibold">欄位名稱</th>
+                  <th class="p-2.5 font-semibold">採購單 (PO)</th>
+                  <th class="p-2.5 font-semibold">電子發票 (Invoice)</th>
+                  <th class="p-2.5 font-semibold">交叉勾稽狀態</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 text-slate-700">
+                <tr>
+                  <td class="p-2.5 font-medium text-slate-400">交易品名</td>
+                  <td class="p-2.5 font-bold">電爐再生低碳鋼筋 12mm</td>
+                  <td class="p-2.5 font-bold">電爐再生低碳鋼筋 12mm</td>
+                  <td class="p-2.5 text-emerald-600 font-bold flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> 完全吻合</td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 font-medium text-slate-400">數量 / 單位</td>
+                  <td class="p-2.5 font-bold">250 公噸</td>
+                  <td class="p-2.5 font-bold">250 公噸</td>
+                  <td class="p-2.5 text-emerald-600 font-bold flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> 完全吻合</td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 font-medium text-slate-400">交易總金額</td>
+                  <td class="p-2.5 font-bold">NT$ 5,250,000</td>
+                  <td class="p-2.5 font-bold">NT$ 5,250,000</td>
+                  <td class="p-2.5 text-emerald-600 font-bold flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> 完全吻合</td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 font-medium text-slate-400">供應商統編</td>
+                  <td class="p-2.5 font-bold">23891002 (豐興鋼鐵)</td>
+                  <td class="p-2.5 font-bold">23891002 (豐興鋼鐵)</td>
+                  <td class="p-2.5 text-emerald-600 font-bold flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> 完全吻合</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 金融級數據防偽與真實性查驗 (對齊圖 2-1 右中) -->
+          <div class="p-4 bg-slate-50/70 border border-slate-100 rounded-2xl space-y-3">
+            <p class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <i class="fa-solid fa-shield-halved text-emerald-600"></i> 金融級數據防偽與真實性查驗 (Real-time Audit)
+            </p>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <!-- 財政部 API 卡片 -->
+              <div class="p-3 bg-white border border-slate-200/80 rounded-xl shadow-2xs">
+                <p class="text-xs font-bold text-slate-800 flex items-center gap-1">
+                  <i class="fa-solid fa-building-columns text-emerald-600"></i> 財政部電子發票 API 查驗
+                </p>
+                <p class="text-[11px] text-emerald-700 font-semibold mt-1">✓ 開立狀態正常（非偽造/作廢）</p>
+                <p class="text-[10px] text-slate-400 mt-0.5">查驗時間：2026/10/09 14:22:10</p>
               </div>
 
-              <!-- 2. 發票號碼輸入框 -->
-              <div>
-                <label class="block text-xs font-medium text-slate-500 mb-1">發票 / 單據號碼</label>
-                <input 
-                  type="text" 
-                  name="invoice_num" 
-                  value="XX-88291034" 
-                  class="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500 focus:bg-white transition"
-                  required
-                >
+              <!-- Hash 防重複融資卡片 -->
+              <div class="p-3 bg-white border border-slate-200/80 rounded-xl shadow-2xs">
+                <p class="text-xs font-bold text-slate-800 flex items-center gap-1">
+                  <i class="fa-solid fa-fingerprint text-indigo-600"></i> 發票 Hash 防重複融資演算
+                </p>
+                <p class="text-[11px] text-emerald-700 font-semibold mt-1">✓ 無重複進件與融資紀錄</p>
+                <p class="text-[10px] text-slate-400 mt-0.5">Hash: 8f3a...d91c (唯一通過)</p>
               </div>
-
-              <!-- 3. 交易金額輸入框 -->
-              <div>
-                <label class="block text-xs font-medium text-slate-500 mb-1">交易金額 (NT$)</label>
-                <input 
-                  type="number" 
-                  name="amount" 
-                  value="5250000" 
-                  class="w-full text-xs font-bold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500 focus:bg-white transition"
-                  required
-                >
-              </div>
-
             </div>
           </div>
 
-          <!-- 底部按鈕 -->
-          <div class="mt-6 flex justify-end">
-            <button type="submit" class="px-6 py-2.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition flex items-center gap-2">
-              <span>確認無誤，產出 TSS 初審評估報告</span>
-              <i class="fa-solid fa-arrow-right"></i>
-            </button>
+          <!-- 環境部數據庫對接提示 (對齊圖 2-1 右下) -->
+          <div class="mt-3 p-3 bg-emerald-50/60 border border-emerald-100 rounded-xl flex justify-between items-center text-xs">
+            <span class="text-emerald-800 font-medium flex items-center gap-1.5">
+              <i class="fa-solid fa-leaf text-emerald-600"></i> 已自動對接環境部產品碳足跡資料庫，取得鋼材減碳參數 (-28.5% CO2e)
+            </span>
+            <span class="px-2 py-0.5 bg-emerald-600 text-white font-bold text-[10px] rounded-md">高減碳潛力</span>
           </div>
+
         </div>
-      </form>
+
+        <!-- 表單隱藏資料傳輸（帶入動態金額與名稱） -->
+        <input type="hidden" name="company_name" value="台灣中鋼構股份有限公司">
+        <input type="hidden" name="invoice_num" value="XX-88291034">
+        <input type="hidden" name="amount" value="5250000">
+
+        <!-- 底部按鈕 (對齊圖 2-1) -->
+        <div class="flex justify-end gap-3 pt-2">
+          <button type="button" class="px-5 py-2.5 text-xs text-slate-500 hover:text-slate-700 font-bold">暫存為草稿</button>
+          <button type="submit" class="px-6 py-2.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition flex items-center gap-2">
+            <span>確認無誤，產出 TSS 初審評估報告</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+
+      </div>
+    </form>
+  </div>
+
+  <!-- ⭐️ 歷史紀錄 Modal 彈出視窗 ⭐️ -->
+  <div id="historyModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
+    <div class="bg-white w-full max-w-4xl rounded-2xl shadow-xl border border-slate-100 flex flex-col max-h-[85vh] overflow-hidden">
+      
+      <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-clock-rotate-left text-emerald-600"></i>
+          <h3 class="text-base font-bold text-slate-900">歷史進件與防偽審核紀錄</h3>
+        </div>
+        <button type="button" onclick="closeHistoryModal()" class="text-slate-400 hover:text-slate-600 w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-100 transition">
+          <i class="fa-solid fa-xmark text-base"></i>
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="border-b border-slate-100 text-slate-400">
+              <th class="pb-3 font-semibold">交易編號</th>
+              <th class="pb-3 font-semibold">企業名稱</th>
+              <th class="pb-3 font-semibold">發票號碼</th>
+              <th class="pb-3 font-semibold">金額 (NT$)</th>
+              <th class="pb-3 font-semibold">TSS 總分</th>
+              <th class="pb-3 font-semibold">防偽狀態</th>
+              <th class="pb-3 font-semibold">操作</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody" class="divide-y divide-slate-100">
+          </tbody>
+        </table>
+      </div>
+
+      <div class="p-4 border-t border-slate-100 bg-slate-50/50 flex justify-end">
+        <button type="button" onclick="closeHistoryModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition">
+          關閉窗口
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openHistoryModal() {
+      document.getElementById('historyModal').classList.remove('hidden');
+      loadHistoryData();
+    }
+
+    function closeHistoryModal() {
+      document.getElementById('historyModal').classList.add('hidden');
+    }
+
+    function loadHistoryData() {
+      fetch('/api/history')
+        .then(res => res.json())
+        .then(data => {
+          const tbody = document.getElementById('historyTableBody');
+          if (!data || data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400">尚無歷史進件資料</td></tr>`;
+            return;
+          }
+          tbody.innerHTML = data.map(item => `
+            <tr class="hover:bg-slate-50/50 transition">
+              <td class="py-3 font-mono font-bold text-slate-800">${item.tx_id}</td>
+              <td class="py-3 font-medium text-slate-700">${item.company_name}</td>
+              <td class="py-3 font-mono text-slate-500">${item.invoice_num}</td>
+              <td class="py-3 font-bold text-slate-800">NT$ ${item.amount.toLocaleString()}</td>
+              <td class="py-3"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold">${item.tss_score}</span></td>
+              <td class="py-3">
+                ${item.status === 'FLAGGED_DUPLICATE' 
+                  ? '<span class="px-2 py-0.5 bg-rose-100 text-rose-700 rounded font-bold">⚠️ 重複 Hash</span>' 
+                  : '<span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded">通過驗證</span>'}
+              </td>
+              <td class="py-3"><a href="/dashboard" class="text-emerald-600 hover:text-emerald-800 font-bold">查看報告 ➔</a></td>
+            </tr>
+          `).join('');
+        })
+        .catch(err => console.error("Error loading history:", err));
+    }
+  </script>
 </body>
 </html>

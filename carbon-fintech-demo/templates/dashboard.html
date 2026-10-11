@@ -1,219 +1,250 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TSS 永續評估報告 - 碳個究竟</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js 視覺化 -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        @media print {
-            .no-print { display: none !important; }
-            body { background: white; color: black; }
-            .print-card { border: 1px solid #ccc !important; background: white !important; color: black !important; }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>交易級永續綜合評估報告 (TSS Report) - 碳個究竟</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome 圖示 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background-color: #f8fafc; }
+    @keyframes spin-slow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .animate-spin-slow { animation: spin-slow 12s linear infinite; }
+  </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen">
+<body class="p-6 text-slate-800">
 
-    <!-- 導覽列 -->
-    <nav class="border-b border-slate-800 bg-slate-950/80 backdrop-blur fixed w-full z-50 no-print">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <div class="bg-emerald-500 text-slate-950 p-2 rounded-lg font-bold">
-                    <i class="fa-solid fa-leaf text-xl"></i>
-                </div>
-                <span class="text-xl font-bold text-white">碳個究竟 <span class="text-emerald-400 text-sm font-normal">Carbon Secret</span></span>
-            </div>
-            <div class="flex space-x-6 text-sm font-medium">
-                <a href="/" class="text-slate-400 hover:text-slate-200">單據上傳評估</a>
-                <a href="/dashboard" class="text-emerald-400 border-b-2 border-emerald-400 pb-1">最新評估報告</a>
-                <a href="/history" class="text-slate-400 hover:text-slate-200">歷史交易稽核</a>
-            </div>
+  <div class="max-w-6xl mx-auto space-y-6">
+    
+    <!-- 頂部導覽與狀態列 -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-lg text-xs font-semibold">圖 2-2 畫面預覽</span>
+          <span class="text-xs text-slate-400">階段三：永續履歷與第三方複審</span>
         </div>
-    </nav>
+        <h1 class="text-2xl font-bold text-slate-900 mt-1">交易級永續綜合評估報告 (TSS Report)</h1>
+        <p class="text-xs text-slate-400 mt-0.5">交易編號：{{ tx.tx_id }} • 申請企業：{{ tx.company_name }}</p>
+      </div>
 
-    <main class="pt-28 pb-16 px-6 max-w-6xl mx-auto">
-        <!-- 頂部操作列 -->
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 no-print">
-            <div>
-                <h1 class="text-2xl font-bold text-white">交易級永續評估報告 (TSS Assessment)</h1>
-                <p class="text-slate-400 text-sm">交易編號：<span class="text-emerald-400 font-mono">{{ tx.tx_id }}</span></p>
+      <!-- 狀態標籤與操作按鈕 -->
+      <div class="flex items-center gap-3">
+        {% if tx.status == 'FLAGGED_DUPLICATE' %}
+        <div class="text-right">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 text-rose-700 border border-rose-200 rounded-full text-xs font-bold animate-pulse">
+            <i class="fa-solid fa-triangle-exclamation text-rose-500"></i> ⚠️ 發現重複 Hash / 疑似重複融資
+          </span>
+          <p class="text-[10px] text-rose-500 mt-0.5">已自動阻斷綠色利率減碼優惠</p>
+        </div>
+        {% else %}
+        <div class="text-right">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-xs font-bold">
+            <i class="fa-solid fa-clock-rotate-left text-amber-500"></i> 初審已完成 / 待第三方機構複審
+          </span>
+          <p class="text-[10px] text-slate-400 mt-0.5">數據已自動去識別化加密</p>
+        </div>
+        {% endif %}
+
+        <a href="/" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-200 transition flex items-center gap-1.5">
+          <i class="fa-solid fa-arrow-left"></i> 評估下一筆
+        </a>
+        <button onclick="window.print()" class="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-medium hover:bg-slate-800 transition flex items-center gap-1.5">
+          <i class="fa-solid fa-file-pdf"></i> 匯出 PDF 報告
+        </button>
+      </div>
+    </div>
+
+    <!-- 主要內容區：左 4 欄 (總分與維度) / 右 8 欄 (明細與授信建議) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- 左側：TSS 總分與權重卡片 (4欄) -->
+      <div class="lg:col-span-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between space-y-6">
+        
+        <div>
+          <h2 class="text-base font-bold text-slate-900 mb-2 flex items-center justify-between">
+            <span>TSS 綜合分數</span>
+            <span class="text-xs bg-emerald-50 text-emerald-700 font-semibold px-2.5 py-0.5 rounded border border-emerald-200">
+              {% if tx.tss_score >= 85 %}Level A (優良){% elif tx.tss_score >= 70 %}Level B (符合){% else %}Level C (未達標){% endif %}
+            </span>
+          </h2>
+          <p class="text-xs text-slate-400 mb-6">依據三大維度加權算力引擎即時演算</p>
+
+          <!-- 圓圈分數儀表 -->
+          <div class="relative w-44 h-44 mx-auto flex items-center justify-center">
+            <div class="w-full h-full rounded-full border-8 border-slate-100 border-t-emerald-500 border-r-emerald-500 border-b-emerald-400 animate-spin-slow"></div>
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+              <span class="text-4xl font-extrabold text-slate-900 tracking-tight">{{ tx.tss_score }}<span class="text-base font-normal text-slate-400">/100</span></span>
+              <span class="text-xs font-bold text-emerald-600 mt-1">
+                {% if tx.tss_score >= 85 %}優良綠色交易{% elif tx.tss_score >= 70 %}標準綠色交易{% else %}尚需持續改善{% endif %}
+              </span>
             </div>
-            <div class="flex space-x-3">
-                <a href="/" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-lg text-sm transition">
-                    <i class="fa-solid fa-plus mr-1"></i> 評估下一筆
-                </a>
-                <button onclick="window.print()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-lg text-sm transition">
-                    <i class="fa-solid fa-file-pdf mr-1"></i> 匯出 PDF 報告
-                </button>
-            </div>
+          </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            <!-- 左側：摘要與卡片 -->
-            <div class="lg:col-span-1 space-y-6">
-                
-                <!-- TSS 總分卡片 -->
-                <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 text-center print-card">
-                    <span class="text-slate-400 text-xs tracking-wider uppercase">TSS 綜合永續評分</span>
-                    <div class="text-6xl font-extrabold text-emerald-400 my-4">{{ tx.tss_score }} <span class="text-lg text-slate-400 font-normal">/ 100</span></div>
-                    <div class="inline-block bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-3 py-1 rounded-full text-xs font-semibold">
-                        建議利率減碼：{{ tx.rate_discount }}
-                    </div>
-                </div>
+        <!-- 三大維度得分拆解 (已修正波浪線) -->
+        <div class="space-y-3.5">
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">三大維度得分拆解</p>
 
-                <!-- 防偽與雜湊驗證憑證 -->
-                <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 print-card">
-                    <h3 class="text-sm font-bold text-slate-200 mb-4 flex items-center">
-                        <i class="fa-solid fa-shield-halved text-emerald-400 mr-2"></i>跨行防偽雜湊憑證 (SHA-256)
-                    </h3>
-                    <div class="space-y-3 text-xs">
-                        <div>
-                            <span class="text-slate-400">上傳單據檔名：</span>
-                            <p class="text-slate-200 font-medium truncate">{{ tx.file_name }}</p>
-                        </div>
-                        <div>
-                            <span class="text-slate-400">SHA-256 哈希值：</span>
-                            <p class="text-emerald-400 font-mono bg-slate-900/80 p-2 rounded border border-slate-700/50 break-all">
-                                {{ tx.file_hash }}
-                            </p>
-                        </div>
-                        <div class="flex justify-between items-center pt-2 border-t border-slate-700/50">
-                            <span class="text-slate-400">重複融資勾稽：</span>
-                            <span class="text-emerald-400 font-bold"><i class="fa-solid fa-check-circle"></i> 通過 (無重複)</span>
-                        </div>
-                    </div>
-                </div>
-
+          <!-- 維度 1 -->
+          <div>
+            <div class="flex justify-between text-xs font-medium mb-1">
+              <span class="text-slate-700">1. 交易環境表現 (W1: 50%)</span>
+              <span class="font-bold text-emerald-600">{{ tx.w1_env }} / 100 分</span>
             </div>
-
-            <!-- 右側：三維度配分與圖表分析 -->
-            <div class="lg:col-span-2 space-y-6">
-                
-                <!-- 企業交易基本資訊 -->
-                <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 print-card">
-                    <h3 class="text-sm font-bold text-slate-200 mb-4 border-b border-slate-700 pb-2">交易基本明細</h3>
-                    <div class="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                            <p class="text-slate-400">申請企業名稱</p>
-                            <p class="font-bold text-slate-100 mt-1">{{ tx.company_name }}</p>
-                        </div>
-                        <div>
-                            <p class="text-slate-400">發票 / 單據號碼</p>
-                            <p class="font-bold text-slate-100 mt-1">{{ tx.invoice_num }}</p>
-                        </div>
-                        <div>
-                            <p class="text-slate-400">交易金額</p>
-                            <p class="font-bold text-emerald-400 text-lg mt-1">NT$ {{ tx.amount }}</p>
-                        </div>
-                        <div>
-                            <p class="text-slate-400">審核狀態</p>
-                            <p class="font-bold text-yellow-400 mt-1" id="status-badge">{{ tx.status }}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 三維度配分圖表 -->
-                <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 print-card">
-                    <h3 class="text-sm font-bold text-slate-200 mb-4">TSS 三大維度算力拆解</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                        <div class="h-48">
-                            <canvas id="tssChart"></canvas>
-                        </div>
-                        <div class="space-y-4 text-xs">
-                            <div class="bg-slate-900/50 p-3 rounded-lg border border-slate-700/50">
-                                <div class="flex justify-between font-bold mb-1">
-                                    <span class="text-emerald-400">維度一：交易環境表現 (W1)</span>
-                                    <span>{{ tx.w1_env }} / 50</span>
-                                </div>
-                                <p class="text-slate-400">依據採購品項之碳足跡與綠色產品驗證權重試算。</p>
-                            </div>
-                            <div class="bg-slate-900/50 p-3 rounded-lg border border-slate-700/50">
-                                <div class="flex justify-between font-bold mb-1">
-                                    <span class="text-blue-400">維度二：資料可信度 (W2)</span>
-                                    <span>{{ tx.w2_cred }} / 30</span>
-                                </div>
-                                <p class="text-slate-400">通過 SHA-256 哈希比對與發票勾稽機制獲得滿分。</p>
-                            </div>
-                            <div class="bg-slate-900/50 p-3 rounded-lg border border-slate-700/50">
-                                <div class="flex justify-between font-bold mb-1">
-                                    <span class="text-amber-400">維度三：永續改善幅度 (W3)</span>
-                                    <span>{{ tx.w3_imp }} / 20</span>
-                                </div>
-                                <p class="text-slate-400">評估企業歷史減碳軌跡與融資規模效益。</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 銀行端快速核准模擬 -->
-                <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 no-print">
-                    <h3 class="text-sm font-bold text-slate-200 mb-3">銀行審核端動作模擬</h3>
-                    <div class="flex space-x-4">
-                        <button onclick="approveTx('Approved')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-                            <i class="fa-solid fa-check mr-1"></i> 核准並給予綠色優惠利率
-                        </button>
-                        <button onclick="approveTx('Rejected')" class="bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-                            <i class="fa-solid fa-xmark mr-1"></i> 退回 / 要求補件
-                        </button>
-                    </div>
-                </div>
-
+            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+              <div class="bg-emerald-500 h-full rounded-full transition-all duration-500" style="--w: {{ tx.w1_env }}%; width: var(--w);"></div>
             </div>
+          </div>
+
+          <!-- 維度 2 -->
+          <div>
+            <div class="flex justify-between text-xs font-medium mb-1">
+              <span class="text-slate-700">2. 資料可信度 (W2: 30%)</span>
+              <span class="font-bold text-indigo-600">{{ tx.w2_cred }} / 100 分</span>
+            </div>
+            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+              <div class="bg-indigo-500 h-full rounded-full transition-all duration-500" style="--w: {{ tx.w2_cred }}%; width: var(--w);"></div>
+            </div>
+          </div>
+
+          <!-- 維度 3 -->
+          <div>
+            <div class="flex justify-between text-xs font-medium mb-1">
+              <span class="text-slate-700">3. 永續改善幅度 (W3: 20%)</span>
+              <span class="font-bold text-amber-600">{{ tx.w3_imp }} / 100 分</span>
+            </div>
+            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+              <div class="bg-amber-500 h-full rounded-full transition-all duration-500" style="--w: {{ tx.w3_imp }}%; width: var(--w);"></div>
+            </div>
+          </div>
         </div>
-    </main>
 
-    <script>
-        // 1. 安全取得 Flask 傳入的數據 (若為空則自動補 0)
-        const w1 = Number("{{ tx.w1_env | default(0) }}") || 0;
-        const w2 = Number("{{ tx.w2_cred | default(0) }}") || 0;
-        const w3 = Number("{{ tx.w3_imp | default(0) }}") || 0;
+        <!-- 數據對接憑證 -->
+        <div class="pt-4 border-t border-slate-100 text-[11px] text-slate-400 space-y-1">
+          <p><i class="fa-solid fa-database text-slate-400"></i> 碳係數庫：環境部氣候變遷署 / ISO 14067</p>
+          <p><i class="fa-solid fa-lock text-slate-400"></i> 數據安全：去識別化 Hash 加密保護</p>
+        </div>
 
-        // 2. 初始化 Chart.js 圖表
-        const ctx = document.getElementById('tssChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['環境表現 (W1)', '資料可信 (W2)', '改善幅度 (W3)'],
-                datasets: [{
-                    data: [w1, w2, w3],
-                    backgroundColor: ['#10b981', '#3b82f6', '#f59e0b'],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                }
-            }
-        });
+      </div>
 
-        // 3. 模擬 AJAX 審核 API
-        function approveTx(status) {
-            fetch('/api/update_status', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ tx_id: '{{ tx.tx_id }}', status: status })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    const badge = document.getElementById('status-badge');
-                    if (badge) {
-                        badge.innerText = status;
-                        badge.className = status === 'Approved' ? 'font-bold text-emerald-400' : 'font-bold text-rose-400';
-                    }
-                    alert('狀態更新成功：' + status);
-                }
-            })
-            .catch(err => console.error('Error:', err));
-        }
-    </script>
+      <!-- 右側：詳細指標評估、雙軌基準與金融授信建議 (8欄) -->
+      <div class="lg:col-span-8 space-y-6">
+
+        <!-- 卡片 1：評分指標細項明細 -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+          <h2 class="text-base font-bold text-slate-900 mb-4 flex items-center justify-between">
+            <span class="flex items-center gap-2"><i class="fa-solid fa-list-check text-emerald-600"></i> 交易級指標算力評估明細</span>
+            <span class="text-xs text-slate-400 font-normal">算力引擎版本 v2.4</span>
+          </h2>
+
+          <div class="space-y-3.5 text-xs">
+            <div class="p-3.5 bg-emerald-50/60 border border-emerald-100 rounded-xl flex flex-wrap justify-between items-center gap-2 text-xs mb-3">
+              <div>
+                <span class="text-slate-500">發票號碼：</span><strong class="text-slate-800">{{ tx.invoice_num }}</strong>
+                <span class="text-slate-300 mx-2">|</span>
+                <span class="text-slate-500">上傳檔名：</span><span class="text-slate-700 font-mono">{{ tx.file_name }}</span>
+              </div>
+              <div>
+                <span class="text-slate-500">交易金額：</span><strong class="text-emerald-700 text-sm">NT$ {{ tx.amount }}</strong>
+              </div>
+            </div>
+
+            <!-- 指標 1 -->
+            <div class="p-3.5 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between">
+              <div>
+                <p class="font-bold text-slate-800">原物料碳強度（減碳效益）</p>
+                <p class="text-slate-500 mt-0.5">採用電爐再生低碳鋼材，產品碳足跡較一般高爐鋼材降低 <strong class="text-emerald-700">28.5%</strong></p>
+              </div>
+              <span class="text-emerald-600 font-bold bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-lg">+18 分</span>
+            </div>
+
+            <!-- 指標 2 -->
+            <div class="p-3.5 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between">
+              <div>
+                <p class="font-bold text-slate-800">進件資料完整度與防偽勾稽</p>
+                <p class="text-slate-500 mt-0.5">通過 PO/GR/Invoice 三單勾稽、財政部 API 驗證與 Hash 防重複融資演算</p>
+              </div>
+              <span class="text-indigo-600 font-bold bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-lg">+28 分</span>
+            </div>
+
+            <!-- 指標 3 -->
+            <div class="p-3.5 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between">
+              <div>
+                <p class="font-bold text-slate-800 flex items-center gap-2">
+                  <span>雙軌基準對齊表現</span>
+                  <span class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-normal">歷史軌跡 + 產業標竿</span>
+                </p>
+                <p class="text-slate-500 mt-0.5">較企業歷史平均減碳 12%，且優於同業綠色標竿（Industry Benchmark）Top 15%</p>
+              </div>
+              <span class="text-amber-600 font-bold bg-amber-50 border border-amber-200 px-3 py-1 rounded-lg">+15 分</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 卡片 2：綠色金融授信建議與第三方對接 -->
+        <div class="bg-gradient-to-br from-emerald-950 to-slate-900 text-white p-6 rounded-2xl shadow-md relative overflow-hidden">
+          
+          <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl">
+            <i class="fa-solid fa-hand-holding-dollar"></i>
+          </div>
+
+          <div class="relative z-10 space-y-4">
+            <div class="flex justify-between items-center">
+              <span class="text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold px-2.5 py-1 rounded-lg">
+                <i class="fa-solid fa-building-columns mr-1"></i> 金融機構 API 專用授信試算
+              </span>
+              <span class="text-[11px] text-slate-400">符合金管會綠色金融 3.0 規範</span>
+            </div>
+
+            <h3 class="text-lg font-bold text-white">建議融資條件：綠色優惠利率資格確認</h3>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-white/5 p-4 rounded-xl border border-white/10 text-center">
+              <div>
+                <p class="text-[11px] text-slate-400">建議利率減碼</p>
+                <p class="text-xl font-extrabold text-emerald-400 mt-0.5">
+                  {{ tx.rate_discount }} 
+                  <span class="text-xs font-normal text-slate-300">
+                    {% if tx.rate_discount == '-0.35%' %}(35 bps){% elif tx.rate_discount == '-0.15%' %}(15 bps){% else %}(0 bps){% endif %}
+                  </span>
+                </p>
+              </div>
+              <div>
+                <p class="text-[11px] text-slate-400">建議授信額度</p>
+                <p class="text-xl font-extrabold text-white mt-0.5">
+                  {% if tx.status == 'FLAGGED_DUPLICATE' %}70% <span class="text-xs font-normal text-slate-300">(標準額度)</span>{% else %}85% <span class="text-xs font-normal text-slate-300">(高於標準70%)</span>{% endif %}
+                </p>
+              </div>
+              <div>
+                <p class="text-[11px] text-slate-400">綠色審查通道</p>
+                <p class="text-xl font-extrabold text-emerald-400 mt-0.5">
+                  {% if tx.status == 'FLAGGED_DUPLICATE' %}<span class="text-rose-400">人工加強審查</span>{% else %}快速審查通道{% endif %}
+                </p>
+              </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row justify-between items-center pt-2 gap-3 text-xs">
+              <p class="text-slate-300 text-xs">
+                <i class="fa-solid fa-shield-check text-emerald-400 mr-1"></i>
+                本初審報告已備妥，將自動對接<strong>第三方驗證機構進行快速複審</strong>。
+              </p>
+              <button type="button" onclick="alert('已成功將交易單據與加密 Hash 傳送至第三方複審機構！')" class="w-full sm:w-auto px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl shadow transition whitespace-nowrap">
+                授權並送出第三方複審 ➔
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
 </body>
 </html>
